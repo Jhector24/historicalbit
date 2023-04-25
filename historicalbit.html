@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Historical Sites Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha384-fO4B4vKys9CFASD0Q0qnJB7sO1vzT1T0u+Fuxz8VhNIuMYvLPa7V2AS2+IIEmYJh" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha384-BtWCPfjbNl4+tkw/61WyNbZwnUNIE4J/j5krX9SKEX5J5cYHQ5rQtnqoPhhLT3Og" crossorigin=""></script>
+  </head>
+  <body>
+    <div id="map" style="height: 500px; width: 100%;"></div>
+
+    <script>
+      var map = L.map('map').setView([51.505, -0.09], 13);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+
+      var markersLayer = new L.LayerGroup().addTo(map);
+      var linesLayer = new L.LayerGroup().addTo(map);
+
+      // Add controls to the map
+      L.control.zoom({
+        position: 'topright'
+      }).addTo(map);
+
+      L.control.search({
+        position: 'topleft'
+      }).addTo(map);
+
+      // Add marker and line on map click
+      map.on('click', function(e) {
+        var marker = L.marker(e.latlng).addTo(markersLayer);
+
+        var popupContent = "<b>" + prompt("Enter site name:") + "</b><br>";
+        popupContent += prompt("Enter site description:") + "<br>";
+        popupContent += '<img src="' + prompt("Enter site image URL:") + '" style="max-width: 300px;"><br>';
+        popupContent += '<button id="delete-marker">Delete marker</button>';
+
+        marker.bindPopup(popupContent).openPopup();
+
+        var previousMarker = markersLayer.getLayers()[markersLayer.getLayers().length - 2];
+
+        if (previousMarker) {
+          var line = L.polyline([previousMarker.getLatLng(), marker.getLatLng()]).addTo(linesLayer);
+
+          var popupContent = "<b>Directions</b><br>";
+          popupContent += "From " + previousMarker.getPopup().getContent().split("<br>")[0].substring(3) + "<br>";
+          popupContent += "To " + marker.getPopup().getContent().split("<br>")[0].substring(3) + "<br>";
+
+          line.bindPopup(popupContent).openPopup();
+        }
+
+        // Add click listener to delete marker button
+        document.getElementById("delete-marker").addEventListener("click", function() {
+          markersLayer.removeLayer(marker);
+        });
+      });
+    </script>
+  </body>
+</html>
